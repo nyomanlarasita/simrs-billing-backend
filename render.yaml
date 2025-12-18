@@ -6,14 +6,11 @@ services:
     buildCommand: npm install
     startCommand: node index.js
     envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
       - key: NODE_ENV
         value: production
-      - key: SUPABASE_URL
-        fromDatabase:
-          name: SUPABASE_URL
-      - key: SUPABASE_ANON_KEY
-        fromDatabase:
-          name: SUPABASE_ANON_KEY
-      - key: DATABASE_URL
-        fromDatabase:
-          name: DATABASE_URL
