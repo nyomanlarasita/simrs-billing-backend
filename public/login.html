@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Billing RS Sehat Sentosa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Noto Sans', 'sans-serif'] },
+                    colors: { 
+                        hospital: { dark: '#1e293b', primary: '#0369a1', accent: '#0ea5e9' } 
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#f8fafc] h-screen flex items-center justify-center p-6 selection:bg-hospital-accent">
+
+    <div class="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-2 bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200">
+        
+        <div class="bg-hospital-dark p-12 text-white flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute top-0 right-0 opacity-10 -mr-10 -mt-10">
+                <i class="fa-solid fa-notes-medical text-[200px]"></i>
+            </div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="bg-hospital-primary p-2.5 rounded-xl">
+                        <i class="fa-solid fa-hospital text-2xl"></i>
+                    </div>
+                    <h1 class="text-xl font-bold tracking-tight">HIS PAYMENT</h1>
+                </div>
+                <h2 class="text-4xl font-extrabold leading-tight mb-4">Portal Kasir <br>& Pembayaran</h2>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-xs">Akses aman untuk pengelolaan billing pasien dan pelaporan keuangan harian.</p>
+            </div>
+            <div class="relative z-10 flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Server: Pusdatin-01 (Connected)
+            </div>
+        </div>
+
+        <div class="p-12 flex flex-col justify-center bg-white">
+            <div class="mb-10 text-center md:text-left">
+                <h3 class="text-2xl font-bold text-slate-800">Autentikasi Petugas</h3>
+                <p class="text-slate-500 text-sm">Silahkan masukkan kredensial Anda.</p>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Username Kasir</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                        <input type="text" id="username" placeholder="Contoh: laras" 
+                               class="w-full pl-11 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-hospital-primary outline-none transition-all font-medium text-slate-700">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Kata Sandi</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                        <input type="password" id="password" placeholder="••••••••" 
+                               class="w-full pl-11 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-hospital-primary outline-none transition-all font-medium text-slate-700">
+                    </div>
+                </div>
+
+                <button onclick="handleLogin()" id="btn-login" 
+                        class="w-full bg-hospital-dark hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-4 shadow-lg">
+                    <span id="btn-text">MASUK SISTEM</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
+                </button>
+            </div>
+
+            <div class="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-400">
+                <span>VERSI 2.2.0</span>
+                <a href="#" class="hover:text-hospital-primary">Bantuan Teknis?</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://esmhvcfemenpmpciiucz.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzbWh2Y2ZlbWVucG1wY2lpdWN6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTc4OTcwOCwiZXhwIjoyMDgxMzY1NzA4fQ.5X3wzLn44aSsJvauwDHFJF2SuucnQaxTYxGeItj8ICA";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function handleLogin() {
+            const userInp = document.getElementById('username').value.trim().toLowerCase();
+            const passInp = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+            const btnText = document.getElementById('btn-text');
+
+            if(!userInp || !passInp) return alert("Harap isi username dan password!");
+
+            btnText.innerText = "Memverifikasi...";
+            btn.disabled = true;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('petugas_kasir')
+                    .select('*')
+                    .eq('username', userInp)
+                    .eq('password', passInp);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('userName', data[0].username.toUpperCase());
+                    window.location.href = "dashboard.html"; // Ke Dashboard
+                } else {
+                    alert("Gagal: Username atau Password salah.");
+                    resetButton();
+                }
+            } catch (err) {
+                alert("Koneksi gagal!");
+                resetButton();
+            }
+        }
+
+        function resetButton() {
+            const btn = document.getElementById('btn-login');
+            const btnText = document.getElementById('btn-text');
+            btn.disabled = false;
+            btnText.innerText = "MASUK SISTEM";
+        }
+    </script>
+</body>
+</html>
