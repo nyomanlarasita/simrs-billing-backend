@@ -49,7 +49,7 @@
         <div class="p-12 flex flex-col justify-center bg-white">
             <div class="mb-10 text-center md:text-left">
                 <h3 class="text-2xl font-bold text-slate-800">Autentikasi Petugas</h3>
-                <p class="text-slate-500 text-sm">Silahkan masukkan kredensial Anda.</p>
+                <p class="text-slate-500 text-sm">Masukkan kredensial atau daftar akun baru.</p>
             </div>
 
             <div class="space-y-6">
@@ -71,11 +71,19 @@
                     </div>
                 </div>
 
-                <button onclick="handleLogin()" id="btn-login" 
-                        class="w-full bg-hospital-dark hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-4 shadow-lg">
-                    <span id="btn-text">MASUK SISTEM</span>
-                    <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
-                </button>
+                <div class="flex flex-col gap-3 mt-4">
+                    <button onclick="handleLogin()" id="btn-login" 
+                            class="w-full bg-hospital-dark hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg">
+                        <span id="btn-text">MASUK SISTEM</span>
+                        <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
+                    </button>
+
+                    <button onclick="handleRegister()" id="btn-register" 
+                            class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                        <span>BUAT AKUN BARU</span>
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-400">
@@ -90,6 +98,7 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzbWh2Y2ZlbWVucG1wY2lpdWN6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTc4OTcwOCwiZXhwIjoyMDgxMzY1NzA4fQ.5X3wzLn44aSsJvauwDHFJF2SuucnQaxTYxGeItj8ICA";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // FUNGSI LOGIN
         async function handleLogin() {
             const userInp = document.getElementById('username').value.trim().toLowerCase();
             const passInp = document.getElementById('password').value;
@@ -113,7 +122,7 @@
                 if (data && data.length > 0) {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userName', data[0].username.toUpperCase());
-                    window.location.href = "dashboard.html"; // Ke Dashboard
+                    window.location.href = "dashboard.html";
                 } else {
                     alert("Gagal: Username atau Password salah.");
                     resetButton();
@@ -121,6 +130,32 @@
             } catch (err) {
                 alert("Koneksi gagal!");
                 resetButton();
+            }
+        }
+
+        // FUNGSI DAFTAR AKUN BARU
+        async function handleRegister() {
+            const userInp = document.getElementById('username').value.trim().toLowerCase();
+            const passInp = document.getElementById('password').value;
+
+            if(!userInp || !passInp) return alert("Isi username & password untuk akun baru!");
+
+            if(passInp.length < 4) return alert("Password minimal 4 karakter!");
+
+            const confirmReg = confirm(`Daftarkan "${userInp}" sebagai petugas baru?`);
+            if(!confirmReg) return;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('petugas_kasir')
+                    .insert([{ username: userInp, password: passInp }]);
+
+                if (error) throw error;
+
+                alert("Akun berhasil dibuat! Silahkan klik 'MASUK SISTEM' untuk login.");
+            } catch (err) {
+                alert("Gagal daftar: Username mungkin sudah digunakan.");
+                console.error(err);
             }
         }
 
